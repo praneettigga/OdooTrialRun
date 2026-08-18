@@ -35,7 +35,7 @@ export function Header() {
         <ButtonLink to="/login" variant="ghost">
           Log in
         </ButtonLink>
-        <ButtonLink to="/login" variant="ink">
+        <ButtonLink to="/signup" variant="ink">
           Start selling
         </ButtonLink>
       </div>
@@ -65,7 +65,7 @@ export function Header() {
           <Link to="/login" className={MENU_ITEM}>
             Log in
           </Link>
-          <ButtonLink to="/login" variant="ink" className="mt-2">
+          <ButtonLink to="/signup" variant="ink" className="mt-2">
             Start selling
           </ButtonLink>
         </div>

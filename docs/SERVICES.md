@@ -9,13 +9,33 @@ The backend/frontend contract. Everything the frontend may call lives in
 > will use. Replace the bodies, keep the exports, and no page changes. Each file
 > is self-contained so they can be swapped one at a time (plan §8, Stage 4).
 >
-> **`auth` is deliberately absent** — that is Praneet's active lane. `LoginPage`
-> still calls a local stub until `services/auth.ts` exists.
+> **`auth.ts` and `supabase.ts` are the exception — those are real**, written by
+> the backend lane and talking to Supabase today.
 >
 > Stubs carry a deliberate 150–600ms delay. Without it the loading branches never
 > render and cannot be tested (plan §12).
 
 ---
+
+## `services/supabase.ts`
+
+| Function | Signature | Notes |
+|---|---|---|
+| `getSupabase` | `() => SupabaseClient` | Lazily creates one client. Throws a readable error if `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` are missing. |
+
+**This is the only module allowed to construct a Supabase client.** Everything
+else — pages included — goes through a service.
+
+## `services/auth.ts`
+
+**Real, not a stub.** Owned by the backend lane.
+
+| Function | Signature | Notes |
+|---|---|---|
+| `signIn` | `(email, password) => Promise<{ error: string \| null }>` | Email/password session. Supabase persists it in browser storage. |
+| `signUp` | `(email, password, username) => Promise<{ error: string \| null; hasSession: boolean }>` | `username` rides in user metadata; the `auth.users` trigger creates the `profiles` row. `hasSession` is false when email confirmation is on. |
+
+See `docs/AUTH.md` for the routing contract.
 
 ## `services/products.ts`
 

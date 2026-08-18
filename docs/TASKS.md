@@ -6,15 +6,15 @@ one above is genuinely done.
 
 ## Tier 1 — the demo dies without these
 
-- [ ] Supabase schema: users, products, seed data — **Praneet**
-- [ ] RLS policies, tested against the dev account — **Praneet**
+- [x] Supabase schema: profiles (products and seed data remain) — **Praneet**
+- [x] RLS policies for profiles (manual dev-account test pending) — **Praneet**
 - [ ] Seeded dev account (Stage 2 exit criterion, plan §6) — **Praneet**
 - [ ] Generated `types/database.ts` — **Praneet**
-- [ ] `services/auth.ts` — sign in / sign up / session — **Praneet**
+- [x] `services/auth.ts` — sign in / sign up / session — **Praneet**
 - [x] Design tokens in `docs/DESIGN.md`, live in `@theme` — **Armaan**
 - [x] Landing page — search, categories, sort/filter/group, listings — **Armaan**
-- [x] Login page — validation, loading, error states — **Armaan**
-- [ ] Sign-up page — **Praneet** (same lane as login)
+- [x] Login page — validation, loading, error states — **Armaan**, wired to real auth by **Praneet**
+- [x] Sign-up page — **Praneet**
 - [x] Product detail view — **Armaan**
 - [x] Create / edit / delete a listing (My Listings) — **Armaan**
 - [x] User dashboard (edit profile fields) — **Armaan**
@@ -48,9 +48,9 @@ Left out rather than shipped dead. DESIGN.md: "Don't ship a dead control."
 
 ## Wiring notes for the backend lane
 
-- `LoginPage.tsx` calls a local `signIn(identifier, password)` stub at the real
-  signature. Replace the import with `services/auth` — the call site is unchanged.
-  It fails closed today: no fake session, no fake user object (plan §6).
+- ~~`LoginPage.tsx` calls a local `signIn` stub~~ — **done.** Praneet swapped it
+  for `services/auth`, and the call site did not change, which is what the
+  stub-at-the-real-signature approach was for.
 - `fixtures/products.ts` is shaped to the fields the Round 1 wireframe documents
   for a listing. It is **not** a schema proposal — `docs/SCHEMA.md` is Praneet's
   to write, and the fixture follows it once it exists.
@@ -91,9 +91,12 @@ the landing page fixture does not match it yet. Reconcile before Stage 4 wiring:
 - [ ] Replace each `services/*.ts` stub body with Supabase calls. Signatures are
       fixed in `docs/SERVICES.md`; no page should change. Do it one file at a
       time — plan §8 warns against moving every page to live data in one commit.
-- [ ] `services/auth.ts` — then swap the local `signIn` stub in `LoginPage.tsx`
-      and wrap `AppLayout` in `ProtectedRoute`. Auth gating is deliberately off
-      until then so the screens stay reviewable (plan §12).
+- [ ] Wrap `AppLayout` in `ProtectedRoute` now that `services/auth.ts` is real.
+      Gating is still off so the screens stay reviewable (plan §12) — turn it on
+      once there is a seeded dev account to log in with.
+- [ ] Nothing reads the session yet. `CURRENT_USER_ID` in `fixtures/catalog.ts`
+      is still hardcoded, so My Listings and Dashboard show the fixture user
+      rather than the signed-in one. Needs an auth context exposing the session.
 - [ ] Listing state is in-memory, so a hard refresh resets to the seed. Fine for
       a demo, gone once Supabase is behind it.
 - [ ] **Schema gaps these pages assume.** `orders` and `order_items` exist in

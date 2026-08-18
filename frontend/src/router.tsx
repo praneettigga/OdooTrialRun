@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import { AppLayout } from './components/layout/AppLayout'
 import { LandingPage } from './pages/landing/LandingPage'
 import { LoginPage } from './pages/login/LoginPage'
+import { SignupPage } from './pages/signup/SignupPage'
 import { MarketplacePage } from './pages/marketplace/MarketplacePage'
 import { ProductDetailPage } from './pages/product/ProductDetailPage'
 import { MyListingsPage } from './pages/listings/MyListingsPage'
@@ -11,9 +12,10 @@ import { PurchasesPage } from './pages/purchases/PurchasesPage'
 import { DashboardPage } from './pages/dashboard/DashboardPage'
 
 export const router = createBrowserRouter([
-  // Landing and login carry their own chrome.
+  // Landing and auth carry their own chrome.
   { path: '/', element: <LandingPage /> },
   { path: '/login', element: <LoginPage /> },
+  { path: '/signup', element: <SignupPage /> },
 
   // Everything else shares the app shell.
   {
