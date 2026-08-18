@@ -40,9 +40,10 @@ Left out rather than shipped dead. DESIGN.md: "Don't ship a dead control."
 - ~~Header cart icon + badge~~ — **shipped** in `AppHeader` now that `/cart` exists.
 - ~~Header profile avatar~~ — **shipped** in `AppHeader` now that `/dashboard` exists.
 - **Sign-up link on the login page** — still needs the sign-up page. One line to add.
-- **Landing header has no link to `/marketplace`.** Deliberately not added: the
-  landing lane owns `Header.tsx` and `LandingPage.tsx`. One line for whoever
-  owns it — add `{ href: '/marketplace', label: 'Marketplace' }` to `LINKS`.
+- **Landing header has no link to `/marketplace`.** Still not added — the
+  landing lane owns `Header.tsx`. One line for whoever owns it: add
+  `{ href: '/marketplace', label: 'Marketplace' }` to `LINKS`. The footer now
+  links there from every page, so it is reachable in the meantime.
 - **Pagination on the marketplace.** 24 listings render fine in one pass; add it
   when the catalogue is big enough to need it.
 
@@ -107,3 +108,24 @@ the landing page fixture does not match it yet. Reconcile before Stage 4 wiring:
       from auth. Decide the columns before building more of that form.
 - [ ] Photo upload. Every listing renders a placeholder until Supabase storage
       is wired; `products.image_url` is already in the schema.
+
+## Merge notes — praneet + athira integration
+
+- `Footer.tsx` linked to `#listings` / `#how`. Those anchors only exist on the
+  landing page, and the footer renders on all ten routes via `AppLayout`, so
+  they were dead everywhere else. Now points at `/marketplace`, `/sell`,
+  `/purchases` — real routes on every page.
+- `services/auth.ts` threw instead of returning. `getSupabase()` throws when the
+  env vars are missing, and neither `LoginPage` nor `SignupPage` wraps the call,
+  so submitting left the button disabled on "Checking…" with nothing on screen.
+  Both now surface the message, because the documented contract is
+  `Promise<{ error }>`, not a throw.
+- `Header.tsx` conflicted (praneet pointed "Start selling" at `/signup`, athira
+  restructured the whole header). Resolution keeps athira's layout and praneet's
+  `/signup` targets.
+- **`ogl` costs +20.8 kB gzip** (106.96 → 127.71 kB) for the hero ripple. Recorded
+  per plan §3, which asks for the bundle delta before adopting, not after.
+- **The hero ripple is unverified motion.** It renders and does not intercept
+  clicks, but a backgrounded automated tab gets zero `requestAnimationFrame`
+  callbacks, so whether it *animates* well needs a human at a visible browser
+  (plan §12).
