@@ -24,7 +24,6 @@ export type Product = {
   price: number
   condition: Condition
   seller: string
-  year: number
   listedDaysAgo: number
 }
 
@@ -38,7 +37,6 @@ export const PRODUCTS: Product[] = [
     price: 6400,
     condition: 'Good',
     seller: 'Nandita R.',
-    year: 1998,
     listedDaysAgo: 2,
   },
   {
@@ -50,7 +48,6 @@ export const PRODUCTS: Product[] = [
     price: 4800,
     condition: 'Like new',
     seller: 'Imran S.',
-    year: 2021,
     listedDaysAgo: 1,
   },
   {
@@ -62,7 +59,6 @@ export const PRODUCTS: Product[] = [
     price: 1250,
     condition: 'Good',
     seller: 'Lakshmi V.',
-    year: 2022,
     listedDaysAgo: 5,
   },
   {
@@ -74,7 +70,6 @@ export const PRODUCTS: Product[] = [
     price: 7200,
     condition: 'Good',
     seller: 'Arjun M.',
-    year: 2019,
     listedDaysAgo: 8,
   },
   {
@@ -86,7 +81,6 @@ export const PRODUCTS: Product[] = [
     price: 2100,
     condition: 'Well used',
     seller: 'Priya D.',
-    year: 2015,
     listedDaysAgo: 12,
   },
   {
@@ -98,7 +92,6 @@ export const PRODUCTS: Product[] = [
     price: 900,
     condition: 'Like new',
     seller: 'Zoya K.',
-    year: 2023,
     listedDaysAgo: 3,
   },
   {
@@ -110,7 +103,6 @@ export const PRODUCTS: Product[] = [
     price: 5300,
     condition: 'Good',
     seller: 'Nandita R.',
-    year: 2020,
     listedDaysAgo: 6,
   },
   {
@@ -122,7 +114,6 @@ export const PRODUCTS: Product[] = [
     price: 5600,
     condition: 'Good',
     seller: 'Rahul B.',
-    year: 2020,
     listedDaysAgo: 4,
   },
   {
@@ -134,7 +125,6 @@ export const PRODUCTS: Product[] = [
     price: 1600,
     condition: 'Good',
     seller: 'Meera T.',
-    year: 2022,
     listedDaysAgo: 9,
   },
   {
@@ -146,7 +136,6 @@ export const PRODUCTS: Product[] = [
     price: 1400,
     condition: 'Like new',
     seller: 'Lakshmi V.',
-    year: 2023,
     listedDaysAgo: 7,
   },
   {
@@ -158,7 +147,6 @@ export const PRODUCTS: Product[] = [
     price: 3200,
     condition: 'Good',
     seller: 'Priya D.',
-    year: 2011,
     listedDaysAgo: 14,
   },
   {
@@ -170,7 +158,6 @@ export const PRODUCTS: Product[] = [
     price: 2800,
     condition: 'Well used',
     seller: 'Imran S.',
-    year: 2021,
     listedDaysAgo: 10,
   },
 ]
