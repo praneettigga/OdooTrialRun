@@ -6,15 +6,15 @@ one above is genuinely done.
 
 ## Tier 1 — the demo dies without these
 
-- [ ] Supabase schema: users, products, seed data — **Praneet**
-- [ ] RLS policies, tested against the dev account — **Praneet**
+- [x] Supabase schema: profiles (products and seed data remain) — **Praneet**
+- [x] RLS policies for profiles (manual dev-account test pending) — **Praneet**
 - [ ] Seeded dev account (Stage 2 exit criterion, plan §6) — **Praneet**
 - [ ] Generated `types/database.ts` — **Praneet**
-- [ ] `services/auth.ts` — sign in / sign up / session — **Praneet**
+- [x] `services/auth.ts` — sign in / sign up / session — **Praneet**
 - [x] Design tokens in `docs/DESIGN.md`, live in `@theme` — **Armaan**
 - [x] Landing page — search, categories, sort/filter/group, listings — **Armaan**
 - [x] Login page — validation, loading, error states — **Armaan**
-- [ ] Sign-up page — _unclaimed_
+- [x] Sign-up page — **Praneet**
 - [ ] Product detail view — _unclaimed_
 - [ ] Create / edit / delete a listing (My Listings) — _unclaimed_
 - [ ] User dashboard (edit profile fields) — _unclaimed_

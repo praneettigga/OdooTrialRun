@@ -1,29 +1,17 @@
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Logo } from '../../components/layout/Logo'
+import { signIn } from '../../services/auth'
 
-// ponytail: stub at the real signature. Swap for services/auth.signIn once the
-// backend lane lands it in docs/SERVICES.md — the call site does not change.
-// Fails closed on purpose: a fake session would pass the route guard and then
-// lose hours to phantom 401s behind RLS (plan §6).
-async function signIn(_email: string, _password: string): Promise<{ error: string | null }> {
-  await new Promise((resolve) => setTimeout(resolve, 500))
-  return {
-    error: 'Sign-in is not connected yet. Accounts arrive with the Supabase schema this stage.',
-  }
-}
+type Errors = { email?: string; password?: string }
 
-type Errors = { identifier?: string; password?: string }
-
-function validate(identifier: string, password: string): Errors {
+function validate(email: string, password: string): Errors {
   const errors: Errors = {}
 
-  if (identifier.trim() === '') {
-    errors.identifier = 'Enter your email or username.'
-  } else if (identifier.includes('@') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier.trim())) {
-    errors.identifier = 'That email address is not complete.'
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    errors.email = 'Enter a valid email address.'
   }
 
   if (password === '') {
@@ -34,7 +22,9 @@ function validate(identifier: string, password: string): Errors {
 }
 
 export function LoginPage() {
-  const [identifier, setIdentifier] = useState('')
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState<Errors>({})
   const [formError, setFormError] = useState<string | null>(null)
@@ -44,16 +34,16 @@ export function LoginPage() {
     event.preventDefault()
     setFormError(null)
 
-    const found = validate(identifier, password)
+    const found = validate(email, password)
     setErrors(found)
     if (Object.keys(found).length > 0) return
 
     setSubmitting(true)
-    const { error } = await signIn(identifier.trim(), password)
+    const { error } = await signIn(email.trim(), password)
     setSubmitting(false)
 
-    // On success this redirects to the dashboard — that route lands in Stage 3.
     if (error) setFormError(error)
+    else navigate('/', { replace: true })
   }
 
   return (
@@ -83,18 +73,19 @@ export function LoginPage() {
         <div className="w-full max-w-md">
           <h2 className="font-display text-display-md">Log in</h2>
           <p className="mt-2 text-body">Welcome back. Pick up where you left off.</p>
+          {location.state?.message && <p className="mt-4 rounded-md bg-primary-pale px-4 py-3 text-sm font-medium text-ink-deep">{location.state.message}</p>}
 
           <form onSubmit={handleSubmit} noValidate className="mt-8 flex flex-col gap-5">
             <Input
-              label="Email or username"
-              type="text"
-              value={identifier}
-              autoComplete="username"
+              label="Email"
+              type="email"
+              value={email}
+              autoComplete="email"
               onChange={(e) => {
-                setIdentifier(e.target.value)
-                if (errors.identifier) setErrors({ ...errors, identifier: undefined })
+                setEmail(e.target.value)
+                if (errors.email) setErrors({ ...errors, email: undefined })
               }}
-              error={errors.identifier}
+              error={errors.email}
               placeholder="you@example.com"
             />
 
@@ -123,6 +114,7 @@ export function LoginPage() {
               {submitting ? 'Checking…' : 'Log in'}
             </Button>
           </form>
+          <p className="mt-6 text-sm text-body">New here? <Link to="/signup" className="font-semibold text-ink underline underline-offset-4">Create an account</Link></p>
         </div>
       </div>
     </div>

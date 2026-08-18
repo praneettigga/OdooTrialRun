@@ -1,9 +1,10 @@
 # Services
 
-The backend/frontend contract. Every function the frontend may call, with its
-signature. Lives in `frontend/src/services/`.
+`frontend/src/services/auth.ts` is the frontend contract for Supabase Auth.
 
-Nothing is here yet. Pages needing data before a service exists use a fixture
-in `frontend/src/fixtures/` shaped to `SCHEMA.md`, at the real function signature.
+| Function | Contract |
+|---|---|
+| `signUp(email, password, username)` | Creates the account and passes username to the profile trigger. |
+| `signIn(email, password)` | Starts an email/password session. |
 
-If a function you need isn't listed here, stop and ask — don't invent one.
+Pages must call this service rather than importing the Supabase client directly.
