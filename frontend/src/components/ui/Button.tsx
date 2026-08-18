@@ -19,7 +19,9 @@ const SIZES: Record<Size, string> = {
 
 const BASE =
   'inline-flex items-center justify-center gap-2 rounded-xl font-semibold ' +
-  'transition-colors duration-150 disabled:opacity-50 disabled:pointer-events-none'
+  'transition-[background-color,transform] duration-150 ease-out ' +
+  'hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] ' +
+  'disabled:opacity-50 disabled:pointer-events-none disabled:hover:translate-y-0'
 
 function classes(variant: Variant, size: Size, className: string) {
   return `${BASE} ${VARIANTS[variant]} ${SIZES[size]} ${className}`.trim()

@@ -1,0 +1,16 @@
+.ripple-distortion {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* Transparent (not the upstream component's opaque black) so the brand
+     lime hero background shows through before the texture loads, and stays
+     as the fallback if WebGL init fails. */
+  background: transparent;
+}
+
+.ripple-distortion canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
