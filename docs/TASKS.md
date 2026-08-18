@@ -72,9 +72,9 @@ the shipped `@theme`; two policy points differ and are **not** yet applied:
 `docs/SCHEMA.md` (Praneet) landed on the remote while Stage 2 was being built, so
 the landing page fixture does not match it yet. Reconcile before Stage 4 wiring:
 
-- `products` has no **`condition`** column. The landing page's condition filter and
-  the card badge both depend on it. Either add the column or drop the filter.
-- `products` has no **`year`**. Unused on screen today; drop it from the fixture.
+- [x] **`condition`** — added to `docs/SCHEMA.md` (`Like new` / `Good` / `Well used`).
+      The landing page's filter and card badge now match the schema.
+- [x] **`year`** — removed from the fixture. Nothing rendered it.
 - `seller` is a display string in the fixture; the schema has **`seller_id` →
   `profiles.username`**. The card needs the joined username.
 - `image_url` exists in the schema — the card currently renders a branded

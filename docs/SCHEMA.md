@@ -37,6 +37,7 @@ auth.users           Supabase handles authentication
 │ price                │
 │ image_url            │
 │ status               │
+│ condition            │
 │ created_at           │
 └──────┬─────────┬─────┘
        │         │
@@ -68,3 +69,7 @@ auth.users           Supabase handles authentication
 
 category
 roles: customers(who are also ), admin
+
+condition: Like new | Good | Well used
+  Added for the landing page's condition filter and card badge. The Round 1
+  wireframe lists Condition on the Add Product screen.
