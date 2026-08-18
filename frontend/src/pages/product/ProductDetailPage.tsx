@@ -4,13 +4,15 @@ import { ConditionBadge, StatusBadge } from '../../components/ui/Badge'
 import { ListingImage } from '../../components/ui/ListingImage'
 import { EmptyState, ErrorState, Spinner } from '../../components/ui/states'
 import { useCart } from '../../context/cartContext'
+import { useAuth } from '../../context/authContext'
 import { inr, listedLabel } from '../../format'
-import { CURRENT_USER_ID, getListing, listListings, type Listing } from '../../services/products'
+import { getListing, listListings, type Listing } from '../../services/products'
 import { ListingTile } from '../marketplace/ListingViews'
 
 export function ProductDetailPage() {
   const { id = '' } = useParams()
   const { add } = useCart()
+  const { session } = useAuth()
 
   const [listing, setListing] = useState<Listing | null>(null)
   const [alsoFromSeller, setAlsoFromSeller] = useState<Listing[]>([])
@@ -90,7 +92,7 @@ export function ProductDetailPage() {
     )
   }
 
-  const isOwnListing = listing.sellerId === CURRENT_USER_ID
+  const isOwnListing = listing.sellerId === session?.user.id
   const isAvailable = listing.status === 'available'
 
   return (

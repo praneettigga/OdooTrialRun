@@ -1,7 +1,3 @@
--- Run after creating an ordinary dev account in Supabase Authentication.
--- This never inserts auth.users directly. It uses the first real profile so
--- the products satisfy the same foreign key and RLS model as browser-created
--- listings. Re-running it refreshes these deterministic demo rows.
 with dev_seller as (
   select id from public.profiles order by created_at asc limit 1
 ), seed_products (

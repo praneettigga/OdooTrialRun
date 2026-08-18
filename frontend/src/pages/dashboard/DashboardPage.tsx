@@ -2,9 +2,10 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Input } from '../../components/ui/Input'
 import { ErrorState, Spinner } from '../../components/ui/states'
+import { useAuth } from '../../context/authContext'
 import { agoLabel, inr } from '../../format'
 import { getProfile, updateProfile, type Profile } from '../../services/profile'
-import { CURRENT_USER_ID, listListings } from '../../services/products'
+import { listListings } from '../../services/products'
 import { listOrders } from '../../services/orders'
 
 type Stats = { live: number; sold: number; drafts: number; orders: number; spent: number }
@@ -19,6 +20,7 @@ function StatTile({ label, value }: { label: string; value: string }) {
 }
 
 export function DashboardPage() {
+  const { session, loading: authLoading } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -36,9 +38,11 @@ export function DashboardPage() {
     setLoading(true)
     setError(null)
 
+    if (authLoading) return
+
     Promise.all([
       getProfile(),
-      listListings({ sellerId: CURRENT_USER_ID, status: 'any' }),
+      session ? listListings({ sellerId: session.user.id, status: 'any' }) : Promise.resolve([]),
       listOrders(),
     ])
       .then(([p, listings, orders]) => {
@@ -63,7 +67,7 @@ export function DashboardPage() {
     return () => {
       cancelled = true
     }
-  }, [reloadKey])
+  }, [authLoading, reloadKey, session])
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

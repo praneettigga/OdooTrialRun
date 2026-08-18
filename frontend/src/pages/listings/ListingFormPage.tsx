@@ -17,7 +17,7 @@ import {
 
 // One component for add and edit — the fields and rules are identical, only the
 // verb and the starting values differ.
-type Errors = Partial<Record<'title' | 'description' | 'price' | 'category', string>>
+type Errors = Partial<Record<'title' | 'description' | 'price' | 'stock' | 'category', string>>
 
 const CATEGORY_OPTIONS = [
   { value: '', label: 'Choose a category' },
@@ -33,6 +33,7 @@ function validate(fields: {
   title: string
   description: string
   price: string
+  stock: string
   category: string
 }): Errors {
   const errors: Errors = {}
@@ -47,6 +48,10 @@ function validate(fields: {
   else if (!Number.isFinite(price) || price < 0) errors.price = 'Price must be zero or more.'
   else if (price > 10_000_000) errors.price = 'That price looks like a typo.'
 
+  const stock = Number(fields.stock)
+  if (fields.stock.trim() === '') errors.stock = 'Enter how many are available.'
+  else if (!Number.isInteger(stock) || stock < 1) errors.stock = 'Stock must be a whole number of at least 1.'
+
   return errors
 }
 
@@ -59,6 +64,7 @@ export function ListingFormPage() {
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState('')
   const [price, setPrice] = useState('')
+  const [stock, setStock] = useState('1')
   const [condition, setCondition] = useState<Condition>('Good')
   const [status, setStatus] = useState<ListingStatus>('available')
 
@@ -83,6 +89,7 @@ export function ListingFormPage() {
           setDescription(listing.description)
           setCategory(listing.category)
           setPrice(String(listing.price))
+          setStock(String(Math.max(1, listing.stockQuantity)))
           setCondition(listing.condition)
           setStatus(listing.status === 'sold' ? 'available' : listing.status)
         }
@@ -103,7 +110,7 @@ export function ListingFormPage() {
     event.preventDefault()
     setFormError(null)
 
-    const found = validate({ title, description, price, category })
+    const found = validate({ title, description, price, stock, category })
     setErrors(found)
     if (Object.keys(found).length > 0) return
 
@@ -114,6 +121,7 @@ export function ListingFormPage() {
         description: description.trim(),
         category: category as Category,
         price: Number(price),
+        stockQuantity: Number(stock),
         condition,
         status,
       }
@@ -243,6 +251,22 @@ export function ListingFormPage() {
             options={CONDITION_OPTIONS}
           />
         </div>
+
+        <Input
+          label="Stock available"
+          type="number"
+          min="1"
+          step="1"
+          inputMode="numeric"
+          value={stock}
+          onChange={(e) => {
+            setStock(e.target.value)
+            if (errors.stock) setErrors({ ...errors, stock: undefined })
+          }}
+          error={errors.stock}
+          hint="Buyers can purchase up to this many units."
+          placeholder="1"
+        />
 
         <div>
           <span className="text-sm font-semibold text-ink">Photo</span>

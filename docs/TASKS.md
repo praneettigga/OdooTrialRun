@@ -9,7 +9,7 @@ one above is genuinely done.
 - [x] Supabase schema: profiles (products and seed data remain) — **Praneet**
 - [x] RLS policies for profiles (manual dev-account test pending) — **Praneet**
 - [ ] Seeded dev account (Stage 2 exit criterion, plan §6) — **Praneet**
-- [ ] Generated `types/database.ts` — **Praneet**
+- [x] Generated `types/database.ts` from the linked project — **Praneet**
 - [x] `services/auth.ts` — sign in / sign up / session — **Praneet**
 - [x] Design tokens in `docs/DESIGN.md`, live in `@theme` — **Armaan**
 - [x] Landing page — search, categories, sort/filter/group, listings — **Armaan**
@@ -17,6 +17,8 @@ one above is genuinely done.
 - [x] Sign-up page — **Praneet**
 - [x] Product detail view — **Armaan**
 - [x] Create / edit / delete a listing (My Listings) — **Armaan**
+- [x] Products schema and live catalogue/listing service with stock — **Praneet**
+- [x] Live profile service and in-app sign out — **Praneet**
 - [x] User dashboard (edit profile fields) — **Armaan**
 
 ## Tier 2 — what makes it competitive

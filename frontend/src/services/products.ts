@@ -1,29 +1,36 @@
-// Listing data. Stubbed against fixtures at the signature the real Supabase
-// implementation will use, so pages never change when it lands (plan §8).
-// Replace the bodies, keep the exports.
+import type { Database } from '../types/database'
+import { getSupabase } from './supabase'
 
-import {
-  CATEGORIES,
-  CONDITIONS,
-  CURRENT_USER_ID,
-  LISTINGS,
-  type Category,
-  type Condition,
-  type Listing,
-  type ListingStatus,
-} from '../fixtures/catalog'
+export const CATEGORIES = [
+  'Furniture',
+  'Electronics',
+  'Books',
+  'Clothing',
+  'Sports',
+  'Kitchen',
+] as const
 
-export { CATEGORIES, CONDITIONS, CURRENT_USER_ID }
-export type { Category, Condition, Listing, ListingStatus }
+export const CONDITIONS = ['Like new', 'Good', 'Well used'] as const
+export const STATUSES = ['available', 'sold', 'draft'] as const
 
-// Deliberate latency: with instant returns the loading branches never render and
-// cannot be verified (plan §12 — a harness that stubs a terminal state cannot
-// catch transition bugs).
-const delay = (ms = 280) => new Promise((resolve) => setTimeout(resolve, ms))
+export type Category = (typeof CATEGORIES)[number]
+export type Condition = (typeof CONDITIONS)[number]
+export type ListingStatus = (typeof STATUSES)[number]
 
-// In-memory for now, so a created listing shows up in My Listings without a
-// backend. A reload resets to the seed, which is the behaviour we want in a demo.
-let listings: Listing[] = [...LISTINGS]
+export type Listing = {
+  id: string
+  sellerId: string
+  sellerName: string
+  title: string
+  description: string
+  category: Category
+  price: number
+  stockQuantity: number
+  imageUrl: string | null
+  status: ListingStatus
+  condition: Condition
+  listedDaysAgo: number
+}
 
 export type ListingSort = 'newest' | 'price-asc' | 'price-desc' | 'title'
 
@@ -38,90 +45,167 @@ export type ListingFilters = {
   sort?: ListingSort
 }
 
-function matches(listing: Listing, filters: ListingFilters) {
-  const q = filters.query?.trim().toLowerCase() ?? ''
-  // Round 1 searches listing titles by keyword.
-  if (q && !listing.title.toLowerCase().includes(q)) return false
-  if (filters.categories?.length && !filters.categories.includes(listing.category)) return false
-  if (filters.conditions?.length && !filters.conditions.includes(listing.condition)) return false
-  if (filters.minPrice != null && listing.price < filters.minPrice) return false
-  if (filters.maxPrice != null && listing.price > filters.maxPrice) return false
-  if (filters.sellerId && listing.sellerId !== filters.sellerId) return false
-
-  const status = filters.status ?? 'available'
-  if (status !== 'any' && listing.status !== status) return false
-
-  return true
-}
-
-function sortListings(rows: Listing[], sort: ListingSort) {
-  return [...rows].sort((a, b) => {
-    if (sort === 'price-asc') return a.price - b.price
-    if (sort === 'price-desc') return b.price - a.price
-    if (sort === 'title') return a.title.localeCompare(b.title)
-    return a.listedDaysAgo - b.listedDaysAgo
-  })
-}
-
-export async function listListings(filters: ListingFilters = {}): Promise<Listing[]> {
-  await delay()
-  return sortListings(listings.filter((l) => matches(l, filters)), filters.sort ?? 'newest')
-}
-
-export async function getListing(id: string): Promise<Listing | null> {
-  await delay()
-  return listings.find((l) => l.id === id) ?? null
-}
-
 export type ListingInput = {
   title: string
   description: string
   category: Category
   price: number
+  stockQuantity: number
   condition: Condition
   status: ListingStatus
 }
 
-function slugify(title: string) {
-  const base = title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 40)
-  return `${base || 'listing'}-${Math.random().toString(36).slice(2, 7)}`
+type ProductRow = Database['public']['Tables']['products']['Row']
+type ProductWithSeller = ProductRow & { seller: { username: string } | null }
+
+function toMessage(cause: unknown) {
+  return cause instanceof Error ? cause.message : 'Could not reach the listings service.'
+}
+
+function daysAgo(createdAt: string) {
+  return Math.max(0, Math.floor((Date.now() - new Date(createdAt).getTime()) / 86_400_000))
+}
+
+function toListing(product: ProductWithSeller): Listing {
+  return {
+    id: product.id,
+    sellerId: product.seller_id,
+    sellerName: product.seller?.username ?? 'Unknown seller',
+    title: product.title,
+    description: product.description,
+    category: product.category as Category,
+    price: product.price,
+    stockQuantity: product.stock_quantity,
+    imageUrl: product.image_url,
+    status: product.status as ListingStatus,
+    condition: product.condition as Condition,
+    listedDaysAgo: daysAgo(product.created_at),
+  }
+}
+
+function throwIfError(error: { message: string } | null) {
+  if (error) throw new Error(error.message)
+}
+
+function escapedLike(value: string) {
+  return value.replace(/[%_\\]/g, '\\$&')
+}
+
+async function currentUserId() {
+  try {
+    const { data, error } = await getSupabase().auth.getUser()
+    throwIfError(error)
+    if (!data.user) throw new Error('Sign in to manage listings.')
+    return data.user.id
+  } catch (cause: unknown) {
+    throw new Error(toMessage(cause))
+  }
+}
+
+export async function listListings(filters: ListingFilters = {}): Promise<Listing[]> {
+  try {
+    const supabase = getSupabase()
+    let query = supabase
+      .from('products')
+      .select('id, seller_id, title, description, category, price, stock_quantity, image_url, condition, status, created_at, seller:profiles!products_seller_id_fkey(username)')
+
+    const status = filters.status ?? 'available'
+    if (status !== 'any') query = query.eq('status', status)
+    if (filters.query?.trim()) query = query.ilike('title', `%${escapedLike(filters.query.trim())}%`)
+    if (filters.categories?.length) query = query.in('category', filters.categories)
+    if (filters.conditions?.length) query = query.in('condition', filters.conditions)
+    if (filters.minPrice != null) query = query.gte('price', filters.minPrice)
+    if (filters.maxPrice != null) query = query.lte('price', filters.maxPrice)
+    if (filters.sellerId) query = query.eq('seller_id', filters.sellerId)
+
+    const sort = filters.sort ?? 'newest'
+    if (sort === 'price-asc') query = query.order('price', { ascending: true })
+    else if (sort === 'price-desc') query = query.order('price', { ascending: false })
+    else if (sort === 'title') query = query.order('title', { ascending: true })
+    else query = query.order('created_at', { ascending: false })
+
+    const { data, error } = await query
+    throwIfError(error)
+    return (data as ProductWithSeller[]).map(toListing)
+  } catch (cause: unknown) {
+    throw new Error(toMessage(cause))
+  }
+}
+
+export async function getListing(id: string): Promise<Listing | null> {
+  try {
+    const { data, error } = await getSupabase()
+      .from('products')
+      .select('id, seller_id, title, description, category, price, stock_quantity, image_url, condition, status, created_at, seller:profiles!products_seller_id_fkey(username)')
+      .eq('id', id)
+      .maybeSingle()
+
+    throwIfError(error)
+    return data ? toListing(data as ProductWithSeller) : null
+  } catch (cause: unknown) {
+    throw new Error(toMessage(cause))
+  }
 }
 
 export async function createListing(input: ListingInput): Promise<Listing> {
-  await delay(420)
-  const listing: Listing = {
-    ...input,
-    id: slugify(input.title),
-    sellerId: CURRENT_USER_ID,
-    sellerName: 'Armaan M.',
-    imageUrl: null,
-    listedDaysAgo: 0,
+  const sellerId = await currentUserId()
+  try {
+    const { data, error } = await getSupabase()
+      .from('products')
+      .insert({
+        seller_id: sellerId,
+        title: input.title.trim(),
+        description: input.description.trim(),
+        category: input.category,
+        price: input.price,
+        stock_quantity: input.stockQuantity,
+        condition: input.condition,
+        status: input.status,
+      })
+      .select('id, seller_id, title, description, category, price, stock_quantity, image_url, condition, status, created_at, seller:profiles!products_seller_id_fkey(username)')
+      .single()
+
+    throwIfError(error)
+    return toListing(data as ProductWithSeller)
+  } catch (cause: unknown) {
+    throw new Error(toMessage(cause))
   }
-  listings = [listing, ...listings]
-  return listing
 }
 
 export async function updateListing(id: string, input: ListingInput): Promise<Listing> {
-  await delay(420)
-  const existing = listings.find((l) => l.id === id)
-  if (!existing) throw new Error('That listing no longer exists.')
-  const updated: Listing = { ...existing, ...input }
-  listings = listings.map((l) => (l.id === id ? updated : l))
-  return updated
+  try {
+    const { data, error } = await getSupabase()
+      .from('products')
+      .update({
+        title: input.title.trim(),
+        description: input.description.trim(),
+        category: input.category,
+        price: input.price,
+        stock_quantity: input.stockQuantity,
+        condition: input.condition,
+        status: input.status,
+      })
+      .eq('id', id)
+      .select('id, seller_id, title, description, category, price, stock_quantity, image_url, condition, status, created_at, seller:profiles!products_seller_id_fkey(username)')
+      .maybeSingle()
+
+    throwIfError(error)
+    if (!data) throw new Error('That listing no longer exists.')
+    return toListing(data as ProductWithSeller)
+  } catch (cause: unknown) {
+    throw new Error(toMessage(cause))
+  }
 }
 
 export async function deleteListing(id: string): Promise<void> {
-  await delay(320)
-  const existing = listings.find((l) => l.id === id)
-  if (!existing) throw new Error('That listing no longer exists.')
-  listings = listings.filter((l) => l.id !== id)
+  try {
+    const { error } = await getSupabase().from('products').delete().eq('id', id)
+    throwIfError(error)
+  } catch (cause: unknown) {
+    throw new Error(toMessage(cause))
+  }
 }
 
-// Marks a listing sold at checkout. Real implementation is one update.
-export async function markSold(ids: string[]): Promise<void> {
-  listings = listings.map((l) => (ids.includes(l.id) ? { ...l, status: 'sold' } : l))
-}
+// Checkout remains fixture-backed until Milestone 3. Keep that fixture flow
+// working without issuing an unauthorized product update from the browser.
+export async function markSold(_ids: string[]): Promise<void> {}

@@ -4,12 +4,12 @@ The backend/frontend contract. Everything the frontend may call lives in
 `frontend/src/services/`. **Pages never import Supabase, and never import
 `fixtures/` directly** — they call these functions.
 
-> **Status.** Every function below is implemented as a stub over
+> **Status.** Product and profile services are live. Cart and order functions remain stubs over
 > `frontend/src/fixtures/`, at the signature the real Supabase implementation
 > will use. Replace the bodies, keep the exports, and no page changes. Each file
 > is self-contained so they can be swapped one at a time (plan §8, Stage 4).
 >
-> **`auth.ts` and `supabase.ts` are the exception — those are real**, written by
+> **`auth.ts` and `supabase.ts` are also real**, written by
 > the backend lane and talking to Supabase today.
 >
 > Stubs carry a deliberate 150–600ms delay. Without it the loading branches never
@@ -69,6 +69,7 @@ type ListingInput = {
   description: string
   category: Category
   price: number
+  stockQuantity: number
   condition: Condition
   status: ListingStatus
 }
@@ -106,6 +107,9 @@ empty the cart. Purchases renders snapshots, never the live listing, so a past
 order still reads correctly after a seller edits or deletes the item.
 
 ## `services/profile.ts`
+
+**Real.** Reads and updates the `profiles` row belonging to the authenticated
+user; email comes from Supabase Auth and remains read-only.
 
 | Function | Signature | Notes |
 |---|---|---|

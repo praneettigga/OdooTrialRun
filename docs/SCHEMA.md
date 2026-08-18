@@ -51,6 +51,7 @@ dashboard. It is not a `profiles` column.
 | `description` | `text` | Required; trimmed length at least 15. |
 | `category` | `text` | Required; one of Furniture, Electronics, Books, Clothing, Sports, Kitchen. |
 | `price` | `numeric(12,2)` | Required; from 0 through 10,000,000 INR. |
+| `stock_quantity` | `integer` | Required; non-negative. It is greater than 0 for `available` and `draft` listings and zero for `sold` listings. Checkout decrements it; reaching zero changes the listing status to `sold`. |
 | `image_url` | `text` | Optional image URL; the UI uses a placeholder while it is null. |
 | `condition` | `text` | Required; one of Like new, Good, Well used. |
 | `status` | `text` | Required; `available`, `sold`, or `draft`; defaults to `available`. |
