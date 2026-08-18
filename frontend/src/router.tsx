@@ -6,6 +6,9 @@ import { MarketplacePage } from './pages/marketplace/MarketplacePage'
 import { ProductDetailPage } from './pages/product/ProductDetailPage'
 import { MyListingsPage } from './pages/listings/MyListingsPage'
 import { ListingFormPage } from './pages/listings/ListingFormPage'
+import { CartPage } from './pages/cart/CartPage'
+import { PurchasesPage } from './pages/purchases/PurchasesPage'
+import { DashboardPage } from './pages/dashboard/DashboardPage'
 
 export const router = createBrowserRouter([
   // Landing and login carry their own chrome.
@@ -21,6 +24,9 @@ export const router = createBrowserRouter([
       { path: '/my-listings', element: <MyListingsPage /> },
       { path: '/my-listings/:id/edit', element: <ListingFormPage /> },
       { path: '/sell', element: <ListingFormPage /> },
+      { path: '/cart', element: <CartPage /> },
+      { path: '/purchases', element: <PurchasesPage /> },
+      { path: '/dashboard', element: <DashboardPage /> },
     ],
   },
 ])

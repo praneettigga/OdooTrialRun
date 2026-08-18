@@ -14,17 +14,18 @@ one above is genuinely done.
 - [x] Design tokens in `docs/DESIGN.md`, live in `@theme` — **Armaan**
 - [x] Landing page — search, categories, sort/filter/group, listings — **Armaan**
 - [x] Login page — validation, loading, error states — **Armaan**
-- [ ] Sign-up page — _unclaimed_
-- [ ] Product detail view — _unclaimed_
-- [ ] Create / edit / delete a listing (My Listings) — _unclaimed_
-- [ ] User dashboard (edit profile fields) — _unclaimed_
+- [ ] Sign-up page — **Praneet** (same lane as login)
+- [x] Product detail view — **Armaan**
+- [x] Create / edit / delete a listing (My Listings) — **Armaan**
+- [x] User dashboard (edit profile fields) — **Armaan**
 
 ## Tier 2 — what makes it competitive
 
 - [x] Category filtering (client-side, on fixtures) — **Armaan**
 - [x] Keyword search by title, with live count and 0-found state — **Armaan**
-- [ ] Cart — _unclaimed_
-- [ ] Previous purchases view — _unclaimed_
+- [x] Cart, with quantity and checkout — **Armaan**
+- [x] Previous purchases view — **Armaan**
+- [x] Marketplace — full searchable catalogue with facets — **Armaan**
 
 ## Tier 3 — only if 1 and 2 are polished
 
@@ -36,11 +37,14 @@ one above is genuinely done.
 
 Left out rather than shipped dead. DESIGN.md: "Don't ship a dead control."
 
-- **Header cart icon + badge** (in the wireframe) — needs the cart page. Add with Cart.
-- **Header profile avatar** (in the wireframe) — needs the dashboard. Add with User dashboard.
-- **Hamburger links to My Listings / Add Product / About / Contact** — the menu
-  currently carries only routes that exist. Extend as each page lands.
-- **Sign-up link on the login page** — needs the sign-up page. One line to add.
+- ~~Header cart icon + badge~~ — **shipped** in `AppHeader` now that `/cart` exists.
+- ~~Header profile avatar~~ — **shipped** in `AppHeader` now that `/dashboard` exists.
+- **Sign-up link on the login page** — still needs the sign-up page. One line to add.
+- **Landing header has no link to `/marketplace`.** Deliberately not added: the
+  landing lane owns `Header.tsx` and `LandingPage.tsx`. One line for whoever
+  owns it — add `{ href: '/marketplace', label: 'Marketplace' }` to `LINKS`.
+- **Pagination on the marketplace.** 24 listings render fine in one pass; add it
+  when the catalogue is big enough to need it.
 
 ## Wiring notes for the backend lane
 
@@ -81,3 +85,22 @@ the landing page fixture does not match it yet. Reconcile before Stage 4 wiring:
   placeholder. Swap to the real image when listings carry one.
 - Fixture keeps `listedDaysAgo` for "newest first"; the schema's `created_at`
   is the real sort key.
+
+## Open — Stage 4 wiring
+
+- [ ] Replace each `services/*.ts` stub body with Supabase calls. Signatures are
+      fixed in `docs/SERVICES.md`; no page should change. Do it one file at a
+      time — plan §8 warns against moving every page to live data in one commit.
+- [ ] `services/auth.ts` — then swap the local `signIn` stub in `LoginPage.tsx`
+      and wrap `AppLayout` in `ProtectedRoute`. Auth gating is deliberately off
+      until then so the screens stay reviewable (plan §12).
+- [ ] Listing state is in-memory, so a hard refresh resets to the seed. Fine for
+      a demo, gone once Supabase is behind it.
+- [ ] **Schema gaps these pages assume.** `orders` and `order_items` exist in
+      `SCHEMA.md` but nothing defines checkout; `placeOrder` currently does
+      create-order → mark-sold → clear-cart and needs to be one transaction.
+- [ ] **Profile fields.** The wireframe wants a fuller profile than `profiles`
+      has columns for. Dashboard edits username only, and shows email read-only
+      from auth. Decide the columns before building more of that form.
+- [ ] Photo upload. Every listing renders a placeholder until Supabase storage
+      is wired; `products.image_url` is already in the schema.
