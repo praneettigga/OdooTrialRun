@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Header } from '../../components/layout/Header'
+import { AppHeader } from '../../components/layout/AppHeader'
 import { Footer } from '../../components/layout/Footer'
 import { Button } from '../../components/ui/Button'
 import RippleDistortion from '../../components/effects/RippleDistortion'
@@ -108,9 +108,10 @@ export function LandingPage() {
 
   return (
     <div className="min-h-svh bg-canvas">
-      {/* Header lives outside the lime band so its sticky containing block is
-          the whole page — otherwise it only sticks within the hero's height. */}
-      <Header />
+      {/* Use the shared app navigation here as well, so every actual route is
+          reachable from the landing page. It stays outside the lime hero so
+          its sticky containing block is the whole page. */}
+      <AppHeader />
 
       {/* Hero band. Ink type and an ink CTA — never a lime button on lime. */}
       <div className="relative overflow-hidden bg-primary text-ink">

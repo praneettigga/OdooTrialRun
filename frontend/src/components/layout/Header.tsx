@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ButtonLink } from '../ui/Button'
 import { Logo } from './Logo'
+import { useAuth } from '../../context/authContext'
 
 const NAV_LINK =
   'rounded-full px-4 py-2 text-sm font-semibold text-ink transition-colors duration-150 hover:bg-ink/5'
@@ -19,6 +20,8 @@ const LINKS = [
 ]
 
 export function Header() {
+  const { session, loading, signOut } = useAuth()
+
   return (
     <header className="sticky top-0 z-30 border-b border-ink/10 bg-primary">
       <div className="mx-auto flex w-full max-w-[1200px] items-center gap-6 px-6 py-4">
@@ -33,12 +36,29 @@ export function Header() {
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 md:flex">
-          <ButtonLink to="/login" variant="ghost">
-            Log in
-          </ButtonLink>
-          <ButtonLink to="/signup" variant="ink">
-            Start selling
-          </ButtonLink>
+          {!loading && (session ? (
+            <>
+              <ButtonLink to="/dashboard" variant="ghost">
+                Dashboard
+              </ButtonLink>
+              <button
+                type="button"
+                onClick={() => void signOut()}
+                className="rounded-xl bg-ink px-5 py-2.5 text-sm font-semibold text-primary transition-colors duration-150 hover:bg-ink-deep"
+              >
+                Log out
+              </button>
+            </>
+          ) : (
+            <>
+              <ButtonLink to="/login" variant="ghost">
+                Log in
+              </ButtonLink>
+              <ButtonLink to="/signup" variant="ink">
+                Start selling
+              </ButtonLink>
+            </>
+          ))}
         </div>
 
         {/* Native disclosure — an accessible toggle with no JS state to keep. */}
@@ -63,12 +83,25 @@ export function Header() {
               </a>
             ))}
             <hr className="my-2 border-canvas-soft" />
-            <Link to="/login" className={MENU_ITEM}>
-              Log in
-            </Link>
-            <ButtonLink to="/signup" variant="ink" className="mt-2">
-              Start selling
-            </ButtonLink>
+            {!loading && (session ? (
+              <>
+                <Link to="/dashboard" className={MENU_ITEM}>
+                  Dashboard
+                </Link>
+                <button type="button" onClick={() => void signOut()} className={`${MENU_ITEM} text-left`}>
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className={MENU_ITEM}>
+                  Log in
+                </Link>
+                <ButtonLink to="/signup" variant="ink" className="mt-2">
+                  Start selling
+                </ButtonLink>
+              </>
+            ))}
           </div>
         </details>
       </div>
