@@ -66,3 +66,18 @@ the shipped `@theme`; two policy points differ and are **not** yet applied:
 - [ ] **Unused source colours** — Signal Blue `#0b4c72`, Alarm Red `#cb272f`,
       Spruce `#054d28`, Slate `#6a6c6a`. Add to `@theme` only when a screen needs them
       (`check:tokens` fails on tokens documented but not live, and vice versa).
+
+## Open — fixture vs Praneet's schema
+
+`docs/SCHEMA.md` (Praneet) landed on the remote while Stage 2 was being built, so
+the landing page fixture does not match it yet. Reconcile before Stage 4 wiring:
+
+- `products` has no **`condition`** column. The landing page's condition filter and
+  the card badge both depend on it. Either add the column or drop the filter.
+- `products` has no **`year`**. Unused on screen today; drop it from the fixture.
+- `seller` is a display string in the fixture; the schema has **`seller_id` →
+  `profiles.username`**. The card needs the joined username.
+- `image_url` exists in the schema — the card currently renders a branded
+  placeholder. Swap to the real image when listings carry one.
+- Fixture keeps `listedDaysAgo` for "newest first"; the schema's `created_at`
+  is the real sort key.

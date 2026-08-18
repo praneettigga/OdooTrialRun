@@ -1,8 +1,70 @@
-# Schema
+auth.users           Supabase handles authentication
+    │
+    └── profiles
+          │
+          └── products
+                │
+                ├── cart_items
+                │
+                └── order_items
+                       │
+                     orders
 
-The backend owner's source of truth. Tables, columns, types, and RLS policies
-that exist **right now** — not a target design.
+┌──────────────────────┐
+│      auth.users      │
+│   Supabase managed   │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│       profiles       │
+├──────────────────────┤
+│ id                   │
+│ username             │
+│ avatar_url           │
+│ created_at           │
+└──────────┬───────────┘
+           │ seller_id
+           ▼
+┌──────────────────────┐
+│       products       │
+├──────────────────────┤
+│ id                   │
+│ seller_id            │
+│ title                │
+│ description          │
+│ category             │
+│ price                │
+│ image_url            │
+│ status               │
+│ created_at           │
+└──────┬─────────┬─────┘
+       │         │
+       │         │
+       ▼         ▼
+┌────────────┐  ┌────────────────┐
+│ cart_items │  │  order_items   │
+├────────────┤  ├────────────────┤
+│ user_id    │  │ id             │
+│ product_id │  │ order_id       │
+│ added_at   │  │ product_id     │
+└────────────┘  │ title_snapshot │
+                │ price_snapshot │
+                │ image_snapshot │
+                └───────┬────────┘
+                        ^
+                        │
+                        |
+                ┌────────────────┐
+                │     orders     │
+                ├────────────────┤
+                │ id             │
+                │ buyer_id       │
+                │ total_amount   │
+                │ status         │
+                │ created_at     │
+                └────────────────┘
 
-Nothing is here yet. Populated as migrations land in `backend/supabase/migrations/`.
 
-If a column you need isn't listed here, stop and ask — don't invent one.
+category
+roles: customers(who are also ), admin
