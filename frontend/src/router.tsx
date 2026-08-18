@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { AppLayout } from './components/layout/AppLayout'
+import { ProtectedRoute } from './components/layout/ProtectedRoute'
 import { LandingPage } from './pages/landing/LandingPage'
 import { LoginPage } from './pages/login/LoginPage'
 import { SignupPage } from './pages/signup/SignupPage'
@@ -19,7 +20,11 @@ export const router = createBrowserRouter([
 
   // Everything else shares the app shell.
   {
-    element: <AppLayout />,
+    element: (
+      <ProtectedRoute>
+        <AppLayout />
+      </ProtectedRoute>
+    ),
     children: [
       { path: '/marketplace', element: <MarketplacePage /> },
       { path: '/product/:id', element: <ProductDetailPage /> },

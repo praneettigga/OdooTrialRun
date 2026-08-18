@@ -4,8 +4,8 @@ The backend/frontend contract. Everything the frontend may call lives in
 `frontend/src/services/`. **Pages never import Supabase, and never import
 `fixtures/` directly** — they call these functions.
 
-> **Status.** Product and profile services are live. Cart and order functions remain stubs over
-> `frontend/src/fixtures/`, at the signature the real Supabase implementation
+> **Status.** Product, profile, cart, and order services are live. Their public
+> signatures remain stable, so pages need no direct Supabase access.
 > will use. Replace the bodies, keep the exports, and no page changes. Each file
 > is self-contained so they can be swapped one at a time (plan §8, Stage 4).
 >
@@ -39,7 +39,7 @@ See `docs/AUTH.md` for the routing contract.
 
 ## `services/products.ts`
 
-Also re-exports `CATEGORIES`, `CONDITIONS`, `CURRENT_USER_ID` and the
+Also re-exports `CATEGORIES`, `CONDITIONS` and the
 `Listing` / `Category` / `Condition` / `ListingStatus` types, so pages have one
 import for listing work.
 
@@ -50,7 +50,6 @@ import for listing work.
 | `createListing` | `(input: ListingInput) => Promise<Listing>` | Seller is the current user. |
 | `updateListing` | `(id: string, input: ListingInput) => Promise<Listing>` | Throws if the listing vanished. |
 | `deleteListing` | `(id: string) => Promise<void>` | Throws if the listing vanished. |
-| `markSold` | `(ids: string[]) => Promise<void>` | Called by checkout. Not for page use. |
 
 ```ts
 type ListingFilters = {
@@ -81,6 +80,10 @@ mirrors the RLS split that `docs/SCHEMA.md` will need.
 
 ## `services/cart.ts`
 
+**Real.** Each cart row belongs to the authenticated user. Quantity changes are
+limited to the product's current available stock; unavailable products are
+omitted from the returned cart.
+
 | Function | Signature | Notes |
 |---|---|---|
 | `getCart` | `() => Promise<CartLine[]>` | Drops lines whose listing disappeared rather than throwing. |
@@ -94,6 +97,10 @@ mirrors the RLS split that `docs/SCHEMA.md` will need.
 service so pages never assemble it.
 
 ## `services/orders.ts`
+
+**Real.** `placeOrder` calls the database's authenticated checkout RPC. The
+database—not the browser—locks stock, derives prices and totals, records
+snapshots, decrements stock, and clears the cart atomically.
 
 | Function | Signature | Notes |
 |---|---|---|

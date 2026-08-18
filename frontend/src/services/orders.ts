@@ -1,52 +1,97 @@
-// Orders and previous purchases. Stubbed at the real signature.
+import type { Database } from '../types/database'
+import { getSupabase } from './supabase'
 
-import { CURRENT_USER, ORDERS, type Order, type OrderItem } from '../fixtures/account'
-import { clearCart, getCart } from './cart'
-import { markSold } from './products'
+export type OrderItem = {
+  id: string
+  productId: string | null
+  titleSnapshot: string
+  priceSnapshot: number
+  categorySnapshot: string
+  imageUrlSnapshot: string | null
+  quantity: number
+}
 
-export type { Order, OrderItem }
+export type Order = {
+  id: string
+  buyerId: string
+  totalAmount: number
+  status: 'placed' | 'cancelled'
+  placedDaysAgo: number
+  items: OrderItem[]
+}
 
-const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms))
+type OrderRow = Database['public']['Tables']['orders']['Row']
+type OrderItemRow = Database['public']['Tables']['order_items']['Row']
+type OrderWithItems = OrderRow & { order_items: OrderItemRow[] }
 
-let orders: Order[] = [...ORDERS]
+function daysAgo(createdAt: string) {
+  return Math.max(0, Math.floor((Date.now() - new Date(createdAt).getTime()) / 86_400_000))
+}
+
+async function currentUserId() {
+  const { data, error } = await getSupabase().auth.getUser()
+  if (error) throw new Error(error.message)
+  if (!data.user) throw new Error('Sign in to view your purchases.')
+  return data.user.id
+}
+
+function toOrderItem(item: OrderItemRow): OrderItem {
+  return {
+    id: item.id,
+    productId: item.product_id,
+    titleSnapshot: item.title_snapshot,
+    priceSnapshot: item.price_snapshot,
+    categorySnapshot: item.category_snapshot,
+    imageUrlSnapshot: item.image_url_snapshot,
+    quantity: item.quantity,
+  }
+}
+
+function toOrder(order: OrderWithItems): Order {
+  return {
+    id: order.id,
+    buyerId: order.buyer_id,
+    totalAmount: order.total_amount,
+    status: order.status as Order['status'],
+    placedDaysAgo: daysAgo(order.created_at),
+    items: order.order_items.map(toOrderItem),
+  }
+}
+
+const orderSelect =
+  'id, buyer_id, total_amount, status, created_at, order_items(id, order_id, product_id, title_snapshot, price_snapshot, category_snapshot, image_url_snapshot, quantity)'
 
 export async function listOrders(): Promise<Order[]> {
-  await delay()
-  return [...orders].sort((a, b) => a.placedDaysAgo - b.placedDaysAgo)
+  const userId = await currentUserId()
+  const { data, error } = await getSupabase()
+    .from('orders')
+    .select(orderSelect)
+    .eq('buyer_id', userId)
+    .order('created_at', { ascending: false })
+
+  if (error) throw new Error(error.message)
+  return (data as OrderWithItems[]).map(toOrder)
 }
 
 export async function getOrder(id: string): Promise<Order | null> {
-  await delay()
-  return orders.find((o) => o.id === id) ?? null
+  const userId = await currentUserId()
+  const { data, error } = await getSupabase()
+    .from('orders')
+    .select(orderSelect)
+    .eq('id', id)
+    .eq('buyer_id', userId)
+    .maybeSingle()
+
+  if (error) throw new Error(error.message)
+  return data ? toOrder(data as OrderWithItems) : null
 }
 
-// Checkout. The Round 1 brief has no payment step, so this is the whole of it:
-// turn the cart into an order with price snapshots, mark the listings sold, and
-// empty the cart. Real version wraps the same three writes in a transaction.
 export async function placeOrder(): Promise<Order> {
-  await delay(600)
-  const lines = await getCart()
-  if (lines.length === 0) throw new Error('Your cart is empty.')
+  const { data, error } = await getSupabase().rpc('place_order')
+  if (error) throw new Error(error.message)
+  if (!data) throw new Error('Could not create your order.')
 
-  const items: OrderItem[] = lines.map((line, index) => ({
-    id: `oi-${Date.now()}-${index}`,
-    productId: line.listing.id,
-    titleSnapshot: line.listing.title,
-    priceSnapshot: line.listing.price,
-    categorySnapshot: line.listing.category,
-  }))
-
-  const order: Order = {
-    id: `ord-${Math.floor(Math.random() * 9000 + 1000)}`,
-    buyerId: CURRENT_USER.id,
-    totalAmount: lines.reduce((sum, line) => sum + line.listing.price * line.quantity, 0),
-    status: 'placed',
-    placedDaysAgo: 0,
-    items,
-  }
-
-  orders = [order, ...orders]
-  await markSold(lines.map((line) => line.listing.id))
-  await clearCart()
+  const order = await getOrder(data)
+  if (!order) throw new Error('Your order was created but could not be loaded.')
   return order
 }

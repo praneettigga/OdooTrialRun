@@ -8,11 +8,10 @@ page behaviour.
 
 | Status | Data |
 |---|---|
-| **Implemented** | `auth.users` (Supabase-managed) and `public.profiles` in `backend/supabase/migrations/20260818065843_create_profiles_and_auth.sql` |
-| **Planned** | `products`, `cart_items`, `orders`, and `order_items` |
+| **Implemented** | `auth.users` (Supabase-managed), `public.profiles`, `public.products`, `public.cart_items`, `public.orders`, and `public.order_items` |
+| **Planned** | _none_ |
 
-Only `profiles` exists in the database today. The planned tables below are the
-next schema contract; this document does not claim they have been migrated.
+All tables in this document exist in the database today.
 
 ## Relationships
 
@@ -41,7 +40,7 @@ listing being deleted. Its snapshot fields are the historical record.
 Email belongs to Supabase Auth (`auth.users`) and is displayed read-only in the
 dashboard. It is not a `profiles` column.
 
-### `products` — planned
+### `products` — implemented
 
 | Column | Type | Rules |
 |---|---|---|
@@ -60,7 +59,7 @@ dashboard. It is not a `profiles` column.
 The frontend receives the seller name by joining `products.seller_id` to
 `profiles.username`; `seller_name` is not stored on `products`.
 
-### `cart_items` — planned
+### `cart_items` — implemented
 
 | Column | Type | Rules |
 |---|---|---|
@@ -72,7 +71,7 @@ The frontend receives the seller name by joining `products.seller_id` to
 Primary key: `(user_id, product_id)`. Adding an existing product increments its
 quantity; setting the quantity to zero removes the row.
 
-### `orders` — planned
+### `orders` — implemented
 
 | Column | Type | Rules |
 |---|---|---|
@@ -82,7 +81,7 @@ quantity; setting the quantity to zero removes the row.
 | `status` | `text` | Required; `placed` or `cancelled`; defaults to `placed`. |
 | `created_at` | `timestamptz` | Required; defaults to `now()`; source of “placed” and newest-first ordering. |
 
-### `order_items` — planned
+### `order_items` — implemented
 
 | Column | Type | Rules |
 |---|---|---|
@@ -109,8 +108,6 @@ quantity; setting the quantity to zero removes the row.
 
 ## Deliberately not specified here
 
-This is a data-model document only. RLS policies, Data API grants, Storage
-buckets/upload rules, checkout transaction/RPC design, indexes, seed data, and
-migration SQL will be designed with the backend implementation. They must be
-added alongside the relevant migration and service wiring, not inferred from
-this document.
+Storage buckets and upload rules remain deliberately unspecified. RLS policies,
+Data API grants, indexes, seed data, migrations, and the checkout RPC are
+implemented alongside their relevant service wiring.

@@ -32,7 +32,10 @@ export function PurchasesPage() {
     }
   }, [reloadKey])
 
-  const itemCount = orders.reduce((sum, order) => sum + order.items.length, 0)
+  const itemCount = orders.reduce(
+    (sum, order) => sum + order.items.reduce((orderTotal, item) => orderTotal + item.quantity, 0),
+    0,
+  )
   const totalSpent = orders.reduce((sum, order) => sum + order.totalAmount, 0)
 
   return (
@@ -73,7 +76,9 @@ export function PurchasesPage() {
                     <h2 className="font-semibold text-ink">Order {order.id}</h2>
                     <p className="mt-0.5 text-sm text-body">
                       Placed {agoLabel(order.placedDaysAgo)} ·{' '}
-                      {order.items.length === 1 ? '1 item' : `${order.items.length} items`}
+                      {order.items.reduce((sum, item) => sum + item.quantity, 0) === 1
+                        ? '1 item'
+                        : `${order.items.reduce((sum, item) => sum + item.quantity, 0)} items`}
                     </p>
                   </div>
                   <span className="font-display text-xl text-ink">
@@ -91,7 +96,10 @@ export function PurchasesPage() {
                         {/* Snapshots, not the live listing — so this still reads
                             correctly after a seller edits or removes the item. */}
                         <p className="font-semibold text-ink">{item.titleSnapshot}</p>
-                        <p className="mt-0.5 text-sm text-mute">{item.categorySnapshot}</p>
+                        <p className="mt-0.5 text-sm text-mute">
+                          {item.categorySnapshot}
+                          {item.quantity > 1 && ` · Quantity ${item.quantity}`}
+                        </p>
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="font-semibold text-ink">

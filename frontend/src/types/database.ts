@@ -14,6 +14,122 @@ export type Database = {
   }
   public: {
     Tables: {
+      cart_items: {
+        Row: {
+          added_at: string
+          product_id: string
+          quantity: number
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          product_id: string
+          quantity: number
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          product_id?: string
+          quantity?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          category_snapshot: string
+          id: string
+          image_url_snapshot: string | null
+          order_id: string
+          price_snapshot: number
+          product_id: string | null
+          quantity: number
+          title_snapshot: string
+        }
+        Insert: {
+          category_snapshot: string
+          id?: string
+          image_url_snapshot?: string | null
+          order_id: string
+          price_snapshot: number
+          product_id?: string | null
+          quantity: number
+          title_snapshot: string
+        }
+        Update: {
+          category_snapshot?: string
+          id?: string
+          image_url_snapshot?: string | null
+          order_id?: string
+          price_snapshot?: number
+          product_id?: string | null
+          quantity?: number
+          title_snapshot?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          id: string
+          status: string
+          total_amount: number
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          id?: string
+          status?: string
+          total_amount: number
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category: string
@@ -90,7 +206,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      place_order: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never

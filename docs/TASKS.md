@@ -19,6 +19,8 @@ one above is genuinely done.
 - [x] Create / edit / delete a listing (My Listings) — **Armaan**
 - [x] Products schema and live catalogue/listing service with stock — **Praneet**
 - [x] Live profile service and in-app sign out — **Praneet**
+- [x] Cart schema and live stock-limited cart service — **Praneet**
+- [x] Atomic checkout, orders, and purchase history service — **Praneet**
 - [x] User dashboard (edit profile fields) — **Armaan**
 
 ## Tier 2 — what makes it competitive
@@ -91,20 +93,10 @@ the landing page fixture does not match it yet. Reconcile before Stage 4 wiring:
 
 ## Open — Stage 4 wiring
 
-- [ ] Replace each `services/*.ts` stub body with Supabase calls. Signatures are
-      fixed in `docs/SERVICES.md`; no page should change. Do it one file at a
-      time — plan §8 warns against moving every page to live data in one commit.
-- [ ] Wrap `AppLayout` in `ProtectedRoute` now that `services/auth.ts` is real.
-      Gating is still off so the screens stay reviewable (plan §12) — turn it on
-      once there is a seeded dev account to log in with.
-- [ ] Nothing reads the session yet. `CURRENT_USER_ID` in `fixtures/catalog.ts`
-      is still hardcoded, so My Listings and Dashboard show the fixture user
-      rather than the signed-in one. Needs an auth context exposing the session.
-- [ ] Listing state is in-memory, so a hard refresh resets to the seed. Fine for
-      a demo, gone once Supabase is behind it.
-- [ ] **Schema gaps these pages assume.** `orders` and `order_items` exist in
-      `SCHEMA.md` but nothing defines checkout; `placeOrder` currently does
-      create-order → mark-sold → clear-cart and needs to be one transaction.
+- [x] Replace `services/*.ts` stub bodies with Supabase calls. Signatures stayed
+      fixed; the landing page deliberately remains fixture-backed.
+- [x] Wrap `AppLayout` in `ProtectedRoute`; signed-out visitors now return to
+      login and resume their requested route after a successful sign-in.
 - [ ] **Profile fields.** The wireframe wants a fuller profile than `profiles`
       has columns for. Dashboard edits username only, and shows email read-only
       from auth. Decide the columns before building more of that form.

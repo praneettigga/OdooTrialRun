@@ -205,7 +205,3 @@ export async function deleteListing(id: string): Promise<void> {
     throw new Error(toMessage(cause))
   }
 }
-
-// Checkout remains fixture-backed until Milestone 3. Keep that fixture flow
-// working without issuing an unauthorized product update from the browser.
-export async function markSold(_ids: string[]): Promise<void> {}
