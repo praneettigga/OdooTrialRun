@@ -70,8 +70,14 @@ export function DashboardPage() {
     setFieldError(undefined)
     setSaved(false)
 
-    if (username.trim().length < 3) {
-      setFieldError('Username needs at least 3 characters.')
+    // Mirrors the schema check so the user sees the error before the round trip.
+    const trimmed = username.trim()
+    if (trimmed.length < 2) {
+      setFieldError('Username needs at least 2 characters.')
+      return
+    }
+    if (trimmed.length > 40) {
+      setFieldError('Username can be at most 40 characters.')
       return
     }
 

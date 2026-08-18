@@ -90,9 +90,13 @@ order still reads correctly after a seller edits or deletes the item.
 | Function | Signature | Notes |
 |---|---|---|
 | `getProfile` | `() => Promise<Profile>` | |
-| `updateProfile` | `(input: ProfileInput) => Promise<Profile>` | Throws on a username under 3 characters. |
+| `updateProfile` | `(input: ProfileInput) => Promise<Profile>` | Throws on a username under 2 characters, matching the schema check. |
 
 `ProfileInput` is `{ username: string; avatarUrl: string | null }` — the only
-columns `docs/SCHEMA.md` gives `profiles` that a user may edit. Email is
-Supabase-managed on `auth.users` and is read-only in the UI. `profiles.username`
-is unique, so the real implementation must surface a 23505 as a field error.
+columns the `profiles` migration grants a user (`grant update (username,
+avatar_url)`). Email is Supabase-managed on `auth.users` and is read-only in the
+UI.
+
+The migration checks `char_length(btrim(username)) between 2 and 40` and does
+**not** make username unique, so there is no 23505 to handle. If we later want
+usernames to be unique, that is a schema change first.

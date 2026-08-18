@@ -26,8 +26,10 @@ export type ProfileInput = {
 export async function updateProfile(input: ProfileInput): Promise<Profile> {
   await delay(420)
   const username = input.username.trim()
-  if (username.length < 3) throw new Error('Username needs at least 3 characters.')
-  // profiles.username is unique in the schema; the real call surfaces a 23505.
+  if (username.length < 2) throw new Error('Username needs at least 2 characters.')
+  if (username.length > 40) throw new Error('Username can be at most 40 characters.')
+  // Matches the schema check: char_length(btrim(username)) between 2 and 40.
+  // Note: username is NOT unique in the migration, so no 23505 to handle.
   profile = { ...profile, username, avatarUrl: input.avatarUrl }
   return { ...profile }
 }
