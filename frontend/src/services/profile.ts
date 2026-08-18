@@ -1,21 +1,11 @@
-// Profile. Stubbed at the real signature.
-//
-// Only username and avatar_url are editable: those are the columns
-// docs/SCHEMA.md gives `profiles`. Email is Supabase-managed on auth.users and
-// is read-only here. The wireframe's broader "user other info" has no columns
-// behind it — logged in docs/TASKS.md rather than invented.
+import { getSupabase } from './supabase'
 
-import { CURRENT_USER, type Profile } from '../fixtures/account'
-
-export type { Profile }
-
-const delay = (ms = 260) => new Promise((resolve) => setTimeout(resolve, ms))
-
-let profile: Profile = { ...CURRENT_USER }
-
-export async function getProfile(): Promise<Profile> {
-  await delay()
-  return { ...profile }
+export type Profile = {
+  id: string
+  username: string
+  email: string
+  avatarUrl: string | null
+  memberSinceDaysAgo: number
 }
 
 export type ProfileInput = {
@@ -23,13 +13,55 @@ export type ProfileInput = {
   avatarUrl: string | null
 }
 
+function daysAgo(createdAt: string) {
+  return Math.max(0, Math.floor((Date.now() - new Date(createdAt).getTime()) / 86_400_000))
+}
+
+async function currentUser() {
+  const { data, error } = await getSupabase().auth.getUser()
+  if (error) throw new Error(error.message)
+  if (!data.user) throw new Error('Sign in to view your profile.')
+  return data.user
+}
+
+function toProfile(
+  row: { id: string; username: string; avatar_url: string | null; created_at: string },
+  email: string,
+): Profile {
+  return {
+    id: row.id,
+    username: row.username,
+    email,
+    avatarUrl: row.avatar_url,
+    memberSinceDaysAgo: daysAgo(row.created_at),
+  }
+}
+
+export async function getProfile(): Promise<Profile> {
+  const user = await currentUser()
+  const { data, error } = await getSupabase()
+    .from('profiles')
+    .select('id, username, avatar_url, created_at')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  if (error) throw new Error(error.message)
+  if (!data) throw new Error('Your profile could not be found.')
+  return toProfile(data, user.email ?? '')
+}
 export async function updateProfile(input: ProfileInput): Promise<Profile> {
-  await delay(420)
   const username = input.username.trim()
   if (username.length < 2) throw new Error('Username needs at least 2 characters.')
   if (username.length > 40) throw new Error('Username can be at most 40 characters.')
-  // Matches the schema check: char_length(btrim(username)) between 2 and 40.
-  // Note: username is NOT unique in the migration, so no 23505 to handle.
-  profile = { ...profile, username, avatarUrl: input.avatarUrl }
-  return { ...profile }
+
+  const user = await currentUser()
+  const { data, error } = await getSupabase()
+    .from('profiles')
+    .update({ username, avatar_url: input.avatarUrl })
+    .eq('id', user.id)
+    .select('id, username, avatar_url, created_at')
+    .single()
+
+  if (error) throw new Error(error.message)
+  return toProfile(data, user.email ?? '')
 }

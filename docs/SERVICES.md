@@ -4,12 +4,12 @@ The backend/frontend contract. Everything the frontend may call lives in
 `frontend/src/services/`. **Pages never import Supabase, and never import
 `fixtures/` directly** — they call these functions.
 
-> **Status.** Every function below is implemented as a stub over
-> `frontend/src/fixtures/`, at the signature the real Supabase implementation
+> **Status.** Product, profile, cart, and order services are live. Their public
+> signatures remain stable, so pages need no direct Supabase access.
 > will use. Replace the bodies, keep the exports, and no page changes. Each file
 > is self-contained so they can be swapped one at a time (plan §8, Stage 4).
 >
-> **`auth.ts` and `supabase.ts` are the exception — those are real**, written by
+> **`auth.ts` and `supabase.ts` are also real**, written by
 > the backend lane and talking to Supabase today.
 >
 > Stubs carry a deliberate 150–600ms delay. Without it the loading branches never
@@ -39,7 +39,7 @@ See `docs/AUTH.md` for the routing contract.
 
 ## `services/products.ts`
 
-Also re-exports `CATEGORIES`, `CONDITIONS`, `CURRENT_USER_ID` and the
+Also re-exports `CATEGORIES`, `CONDITIONS` and the
 `Listing` / `Category` / `Condition` / `ListingStatus` types, so pages have one
 import for listing work.
 
@@ -50,7 +50,6 @@ import for listing work.
 | `createListing` | `(input: ListingInput) => Promise<Listing>` | Seller is the current user. |
 | `updateListing` | `(id: string, input: ListingInput) => Promise<Listing>` | Throws if the listing vanished. |
 | `deleteListing` | `(id: string) => Promise<void>` | Throws if the listing vanished. |
-| `markSold` | `(ids: string[]) => Promise<void>` | Called by checkout. Not for page use. |
 
 ```ts
 type ListingFilters = {
@@ -69,6 +68,7 @@ type ListingInput = {
   description: string
   category: Category
   price: number
+  stockQuantity: number
   condition: Condition
   status: ListingStatus
 }
@@ -79,6 +79,10 @@ My Listings passes `status: 'any'` because it is the seller's own view. This
 mirrors the RLS split that `docs/SCHEMA.md` will need.
 
 ## `services/cart.ts`
+
+**Real.** Each cart row belongs to the authenticated user. Quantity changes are
+limited to the product's current available stock; unavailable products are
+omitted from the returned cart.
 
 | Function | Signature | Notes |
 |---|---|---|
@@ -94,6 +98,10 @@ service so pages never assemble it.
 
 ## `services/orders.ts`
 
+**Real.** `placeOrder` calls the database's authenticated checkout RPC. The
+database—not the browser—locks stock, derives prices and totals, records
+snapshots, decrements stock, and clears the cart atomically.
+
 | Function | Signature | Notes |
 |---|---|---|
 | `listOrders` | `() => Promise<Order[]>` | Newest first. Previous Purchases. |
@@ -106,6 +114,9 @@ empty the cart. Purchases renders snapshots, never the live listing, so a past
 order still reads correctly after a seller edits or deletes the item.
 
 ## `services/profile.ts`
+
+**Real.** Reads and updates the `profiles` row belonging to the authenticated
+user; email comes from Supabase Auth and remains read-only.
 
 | Function | Signature | Notes |
 |---|---|---|

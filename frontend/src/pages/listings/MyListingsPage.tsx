@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom'
 import { StatusBadge } from '../../components/ui/Badge'
 import { ListingImage } from '../../components/ui/ListingImage'
 import { CardSkeleton, EmptyState, ErrorState } from '../../components/ui/states'
+import { useAuth } from '../../context/authContext'
 import { inr, listedLabel } from '../../format'
 import {
-  CURRENT_USER_ID,
   deleteListing,
   listListings,
   type Listing,
@@ -109,6 +109,7 @@ function ListingRow({
 }
 
 export function MyListingsPage() {
+  const { session, loading: authLoading } = useAuth()
   const [listings, setListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -119,8 +120,16 @@ export function MyListingsPage() {
     setLoading(true)
     setError(null)
 
+    if (authLoading) return
+    if (!session) {
+      setListings([])
+      setError('Sign in to manage listings.')
+      setLoading(false)
+      return
+    }
+
     // status 'any' so drafts and sold items show — this is the seller's own view.
-    listListings({ sellerId: CURRENT_USER_ID, status: 'any' })
+    listListings({ sellerId: session.user.id, status: 'any' })
       .then((rows) => {
         if (cancelled) return
         setListings(rows)
@@ -135,7 +144,7 @@ export function MyListingsPage() {
     return () => {
       cancelled = true
     }
-  }, [reloadKey])
+  }, [authLoading, reloadKey, session])
 
   const handleDeleted = useCallback((id: string) => {
     setListings((rows) => rows.filter((r) => r.id !== id))

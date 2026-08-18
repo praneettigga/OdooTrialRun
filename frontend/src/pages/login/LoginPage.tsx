@@ -43,7 +43,10 @@ export function LoginPage() {
     setSubmitting(false)
 
     if (error) setFormError(error)
-    else navigate('/', { replace: true })
+    else {
+      const from = typeof location.state?.from === 'string' ? location.state.from : '/'
+      navigate(from, { replace: true })
+    }
   }
 
   return (

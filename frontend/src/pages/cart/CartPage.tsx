@@ -11,10 +11,12 @@ import { placeOrder } from '../../services/orders'
 function QuantityStepper({
   value,
   busy,
+  max,
   onChange,
 }: {
   value: number
   busy: boolean
+  max: number
   onChange: (next: number) => void
 }) {
   return (
@@ -22,7 +24,7 @@ function QuantityStepper({
       <button
         type="button"
         onClick={() => onChange(value - 1)}
-        disabled={busy}
+        disabled={busy || value <= 1}
         aria-label="Reduce quantity"
         className="px-3 py-2 text-lg font-semibold text-ink hover:bg-canvas-soft disabled:opacity-40"
       >
@@ -34,7 +36,7 @@ function QuantityStepper({
       <button
         type="button"
         onClick={() => onChange(value + 1)}
-        disabled={busy}
+        disabled={busy || value >= max}
         aria-label="Increase quantity"
         className="px-3 py-2 text-lg font-semibold text-ink hover:bg-canvas-soft disabled:opacity-40"
       >
@@ -54,6 +56,7 @@ export function CartPage() {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [placing, setPlacing] = useState(false)
   const [orderError, setOrderError] = useState<string | null>(null)
+  const [lineError, setLineError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
 
   const load = useCallback(async () => {
@@ -73,17 +76,27 @@ export function CartPage() {
 
   async function changeQuantity(productId: string, next: number) {
     setBusyId(productId)
-    await setQuantity(productId, next)
-    setLines(await getCart())
-    await refresh()
+    setLineError(null)
+    try {
+      await setQuantity(productId, next)
+      setLines(await getCart())
+      await refresh()
+    } catch (e: unknown) {
+      setLineError(e instanceof Error ? e.message : 'Could not update this item.')
+    }
     setBusyId(null)
   }
 
   async function remove(productId: string) {
     setBusyId(productId)
-    await removeFromCart(productId)
-    setLines(await getCart())
-    await refresh()
+    setLineError(null)
+    try {
+      await removeFromCart(productId)
+      setLines(await getCart())
+      await refresh()
+    } catch (e: unknown) {
+      setLineError(e instanceof Error ? e.message : 'Could not remove this item.')
+    }
     setBusyId(null)
   }
 
@@ -133,6 +146,11 @@ export function CartPage() {
         ) : (
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div className="flex min-w-0 flex-col gap-4">
+              {lineError && (
+                <p role="alert" className="text-sm font-medium text-negative-deep">
+                  {lineError}
+                </p>
+              )}
               {lines.map(({ listing, quantity }) => (
                 <div
                   key={listing.id}
@@ -164,6 +182,7 @@ export function CartPage() {
                     <QuantityStepper
                       value={quantity}
                       busy={busyId === listing.id}
+                      max={listing.stockQuantity}
                       onChange={(next) => changeQuantity(listing.id, next)}
                     />
                     <button
@@ -214,8 +233,8 @@ export function CartPage() {
                 {placing ? 'Placing order…' : 'Place order'}
               </button>
               <p className="mt-3 text-xs text-body">
-                Round 1 has no payment step. Placing the order records the purchase and marks
-                the items sold.
+                Round 1 has no payment step. Placing the order records the purchase and updates
+                stock immediately.
               </p>
             </aside>
           </div>

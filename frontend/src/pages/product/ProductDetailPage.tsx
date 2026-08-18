@@ -4,13 +4,15 @@ import { ConditionBadge, StatusBadge } from '../../components/ui/Badge'
 import { ListingImage } from '../../components/ui/ListingImage'
 import { EmptyState, ErrorState, Spinner } from '../../components/ui/states'
 import { useCart } from '../../context/cartContext'
+import { useAuth } from '../../context/authContext'
 import { inr, listedLabel } from '../../format'
-import { CURRENT_USER_ID, getListing, listListings, type Listing } from '../../services/products'
+import { getListing, listListings, type Listing } from '../../services/products'
 import { ListingTile } from '../marketplace/ListingViews'
 
 export function ProductDetailPage() {
   const { id = '' } = useParams()
   const { add } = useCart()
+  const { session } = useAuth()
 
   const [listing, setListing] = useState<Listing | null>(null)
   const [alsoFromSeller, setAlsoFromSeller] = useState<Listing[]>([])
@@ -18,6 +20,7 @@ export function ProductDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
   const [added, setAdded] = useState(false)
+  const [addError, setAddError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
@@ -25,6 +28,7 @@ export function ProductDetailPage() {
     setLoading(true)
     setError(null)
     setAdded(false)
+    setAddError(null)
 
     getListing(id)
       .then(async (found) => {
@@ -50,9 +54,14 @@ export function ProductDetailPage() {
   async function handleAdd() {
     if (!listing) return
     setAdding(true)
-    await add(listing.id)
+    setAddError(null)
+    try {
+      await add(listing.id)
+      setAdded(true)
+    } catch (e: unknown) {
+      setAddError(e instanceof Error ? e.message : 'Could not add this item to your cart.')
+    }
     setAdding(false)
-    setAdded(true)
   }
 
   if (loading) {
@@ -90,7 +99,7 @@ export function ProductDetailPage() {
     )
   }
 
-  const isOwnListing = listing.sellerId === CURRENT_USER_ID
+  const isOwnListing = listing.sellerId === session?.user.id
   const isAvailable = listing.status === 'available'
 
   return (
@@ -181,14 +190,21 @@ export function ProductDetailPage() {
                 </p>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={handleAdd}
-                disabled={adding}
-                className="w-full rounded-xl bg-primary px-7 py-3.5 text-base font-semibold text-ink transition-colors duration-150 hover:bg-primary-active disabled:opacity-50 sm:w-auto"
-              >
-                {adding ? 'Adding…' : 'Add to cart'}
-              </button>
+              <div>
+                <button
+                  type="button"
+                  onClick={handleAdd}
+                  disabled={adding}
+                  className="w-full rounded-xl bg-primary px-7 py-3.5 text-base font-semibold text-ink transition-colors duration-150 hover:bg-primary-active disabled:opacity-50 sm:w-auto"
+                >
+                  {adding ? 'Adding…' : 'Add to cart'}
+                </button>
+                {addError && (
+                  <p role="alert" className="mt-3 text-sm font-medium text-negative-deep">
+                    {addError}
+                  </p>
+                )}
+              </div>
             )}
           </div>
         </div>

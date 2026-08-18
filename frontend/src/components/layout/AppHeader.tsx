@@ -1,6 +1,7 @@
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Logo } from './Logo'
 import { useCart } from '../../context/cartContext'
+import { useAuth } from '../../context/authContext'
 
 // Separate from Header.tsx on purpose. That one is the landing page's marketing
 // chrome (Browse / How it works / Log in); this is in-app navigation. Keeping
@@ -23,6 +24,16 @@ function linkClass({ isActive }: { isActive: boolean }) {
 
 export function AppHeader() {
   const { count } = useCart()
+  const { session, signOut } = useAuth()
+  const navigate = useNavigate()
+  const initials = (session?.user.user_metadata.username ?? session?.user.email ?? '?')
+    .slice(0, 2)
+    .toUpperCase()
+
+  async function handleSignOut() {
+    const error = await signOut()
+    if (!error) navigate('/')
+  }
 
   return (
     <header className="sticky top-0 z-30 border-b border-canvas-soft bg-canvas">
@@ -73,8 +84,25 @@ export function AppHeader() {
             className="flex size-10 items-center justify-center rounded-full bg-canvas-soft font-display text-sm text-ink transition-colors duration-150 hover:bg-primary-pale"
             aria-label="Your dashboard"
           >
-            AM
+            {initials}
           </Link>
+
+          {session ? (
+            <button
+              type="button"
+              onClick={() => void handleSignOut()}
+              className="hidden rounded-xl px-3 py-2 text-sm font-semibold text-body transition-colors duration-150 hover:bg-canvas-soft hover:text-ink sm:inline-flex"
+            >
+              Log out
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="hidden rounded-xl px-3 py-2 text-sm font-semibold text-body transition-colors duration-150 hover:bg-canvas-soft hover:text-ink sm:inline-flex"
+            >
+              Log in
+            </Link>
+          )}
         </div>
       </div>
 
@@ -91,6 +119,19 @@ export function AppHeader() {
         <NavLink to="/sell" className={linkClass}>
           Sell
         </NavLink>
+        {session ? (
+          <button
+            type="button"
+            onClick={() => void handleSignOut()}
+            className="rounded-md px-3 py-2 text-sm font-semibold text-body transition-colors duration-150 hover:text-ink"
+          >
+            Log out
+          </button>
+        ) : (
+          <NavLink to="/login" className={linkClass}>
+            Log in
+          </NavLink>
+        )}
       </nav>
     </header>
   )
