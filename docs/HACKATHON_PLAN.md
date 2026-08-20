@@ -133,6 +133,32 @@ assistant, no session trailers, no "generated with" lines, in commit messages or
 PR bodies. Commits are authored by the builder who ran them. Put this in every
 builder's local `CLAUDE.md` / `AGENTS.md` — some tools add trailers by default.
 
+**Set it in local tool config, not just prose.** The written rule alone has not
+held, and a trailer removed after the fact means rewriting shared history and
+making everyone re-clone — so configure the tool instead of trusting the habit.
+Every builder sets this once, in their own `~/.claude/settings.json`, outside the
+repo, so it covers every project they touch:
+
+```json
+{
+  "attribution": { "commit": "", "pr": "", "sessionUrl": false },
+  "includeCoAuthoredBy": false
+}
+```
+
+Empty `commit` and `pr` strings drop the trailer and the PR footer; `sessionUrl:
+false` drops the session link. `includeCoAuthoredBy` is the deprecated spelling
+of the same thing, kept because we do not know which tool version each builder is
+running.
+
+**The config itself stays out of the repo.** `.claude/`, `CLAUDE.md` and
+`AGENTS.md` are gitignored. A committed tool-config directory is itself a record
+of how the code was written, which defeats the point of dropping the trailer.
+Check `git ls-files` for stray editor and tool config before a merge — one slipped
+in early and had to be untracked later. Per-laptop setup is the cost of keeping
+the repo clean; it does not enforce itself, so it belongs on every builder's
+first-day checklist.
+
 **Never fake authorship.** No `--author` set to a teammate who did not write the
 commit, no `GIT_AUTHOR_DATE` backdating. GitHub records author and committer
 separately and shows contributor activity, so invented attribution is visible to
