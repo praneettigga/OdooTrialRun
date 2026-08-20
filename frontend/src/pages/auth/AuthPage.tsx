@@ -66,6 +66,10 @@ export function AuthPage({ initialMode = 'signup' }: { initialMode?: Mode }) {
 
   const isLogin = mode === 'login'
   return <main className="auth-screen">
+    <video className="auth-background-video" autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
+      <source src="/auth-background.mp4" type="video/mp4" />
+    </video>
+    <div className="auth-video-tint" aria-hidden="true" />
     <section className={`auth-card ${isLogin ? 'is-login' : 'is-signup'}`} aria-label="Account access">
       <form className="auth-form-panel signup-panel" onSubmit={handleSignup} noValidate aria-hidden={isLogin}>
         <div className="auth-form-content">
