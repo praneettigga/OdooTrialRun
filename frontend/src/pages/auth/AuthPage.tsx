@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Logo } from '../../components/layout/Logo'
 import { signIn, signUp } from '../../services/auth'
@@ -38,6 +38,12 @@ export function AuthPage({ initialMode = 'signup' }: { initialMode?: Mode }) {
   const [signupErrors, setSignupErrors] = useState<Errors>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [isReady, setIsReady] = useState(false)
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setIsReady(true))
+    return () => cancelAnimationFrame(frame)
+  }, [])
 
   function switchMode(next: Mode) { setFormError(null); setMode(next) }
 
@@ -70,7 +76,7 @@ export function AuthPage({ initialMode = 'signup' }: { initialMode?: Mode }) {
       <source src="/auth-background.mp4" type="video/mp4" />
     </video>
     <div className="auth-video-tint" aria-hidden="true" />
-    <section className={`auth-card ${isLogin ? 'is-login' : 'is-signup'}`} aria-label="Account access">
+    <section className={`auth-card ${isLogin ? 'is-login' : 'is-signup'} ${isReady ? 'ready' : ''}`} aria-label="Account access">
       <form className="auth-form-panel signup-panel" onSubmit={handleSignup} noValidate aria-hidden={isLogin}>
         <div className="auth-form-content">
           <h1>Create account</h1><p>Your username appears beside the things you list.</p>
