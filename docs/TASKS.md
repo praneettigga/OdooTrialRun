@@ -43,7 +43,8 @@ Left out rather than shipped dead. DESIGN.md: "Don't ship a dead control."
 
 - ~~Header cart icon + badge~~ — **shipped** in `AppHeader` now that `/cart` exists.
 - ~~Header profile avatar~~ — **shipped** in `AppHeader` now that `/dashboard` exists.
-- **Sign-up link on the login page** — still needs the sign-up page. One line to add.
+- ~~Sign-up link on the login page~~ — **moot.** `AuthPage` now carries both
+  forms and the overlay switches between them.
 - **Landing header has no link to `/marketplace`.** Still not added — the
   landing lane owns `Header.tsx`. One line for whoever owns it: add
   `{ href: '/marketplace', label: 'Marketplace' }` to `LINKS`. The footer now
@@ -123,3 +124,38 @@ the landing page fixture does not match it yet. Reconcile before Stage 4 wiring:
   clicks, but a backgrounded automated tab gets zero `requestAnimationFrame`
   callbacks, so whether it *animates* well needs a human at a visible browser
   (plan §12).
+
+## Auth follow-ups after the `pooja` merge — **Armaan**
+
+Fixed on top of the sliding auth card:
+
+- [x] **Panel switch now drives the URL.** Mode was local state, so switching left
+      `/login` showing the signup form; refresh and Back both lost typed input.
+      Derived from the path instead. `/login` and `/signup` became one layout
+      route so the component stays mounted — as separate route elements the
+      switch remounted it and killed the slide transition.
+- [x] **Offscreen panel no longer keyboard-reachable.** It carried
+      `aria-hidden="true"` while its four controls stayed in the tab order, so
+      keyboard users landed in an invisible form that screen readers refused to
+      announce. `inert` replaces the `aria-hidden`, and focus is handed to the
+      incoming form after the render that lifts it.
+- [x] **Contrast.** Subtitle, field hints and the reset link sat at 3.31:1 on the
+      composited card; AA wants 4.5. Now `#0e1b08` at 5.20:1, with margin because
+      the video shifts the substrate frame to frame.
+- [x] **Mobile double scrollbar.** `.auth-screen` had `overflow:auto` inside a
+      page that already scrolled, giving two nested scroll containers.
+- [x] **"Forgot password?" is a real control**, not a dead `<span>`.
+- [x] `LoginPage.tsx` / `SignupPage.tsx` deleted — both had become one-line
+      wrappers that the layout route makes redundant.
+
+Still open:
+
+- [ ] **Add the redirect URL in Supabase** → Authentication → URL Configuration →
+      Redirect URLs: `http://localhost:5173/reset-password`, plus the production
+      origin once §1 of the plan has one. Until then the emailed link dead-ends.
+      Dashboard-only; no repo change can do it.
+- [ ] **Auth styling is plain CSS, not Tailwind**, against the locked stack in
+      plan §3. Contained to `AuthPage.css`; left as a knowing exception.
+- [ ] Pooja's mobile commit edited `index.html` and `src/index.css` — integrator
+      lane. The global block includes a `[class*="max-w-[1240px]"]` selector that
+      reaches into Tailwind utility classes and breaks silently if those change.

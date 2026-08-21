@@ -34,6 +34,8 @@ else — pages included — goes through a service.
 |---|---|---|
 | `signIn` | `(email, password) => Promise<{ error: string \| null }>` | Email/password session. Supabase persists it in browser storage. |
 | `signUp` | `(email, password, username) => Promise<{ error: string \| null; hasSession: boolean }>` | `username` rides in user metadata; the `auth.users` trigger creates the `profiles` row. `hasSession` is false when email confirmation is on. |
+| `requestPasswordReset` | `(email) => Promise<{ error: string \| null }>` | Emails a recovery link pointing at `/reset-password`. **Resolves with `error: null` for addresses that have no account** — Supabase does this so nobody can enumerate registered emails, so callers must keep their success copy non-committal. |
+| `updatePassword` | `(password) => Promise<{ error: string \| null }>` | Sets a new password on the session the recovery link established. No old password needed; the link is the proof. |
 
 See `docs/AUTH.md` for the routing contract.
 

@@ -2,8 +2,8 @@ import { createBrowserRouter } from 'react-router-dom'
 import { AppLayout } from './components/layout/AppLayout'
 import { ProtectedRoute } from './components/layout/ProtectedRoute'
 import { LandingPage } from './pages/landing/LandingPage'
-import { LoginPage } from './pages/login/LoginPage'
-import { SignupPage } from './pages/signup/SignupPage'
+import { AuthPage } from './pages/auth/AuthPage'
+import { ResetPasswordPage } from './pages/reset-password/ResetPasswordPage'
 import { MarketplacePage } from './pages/marketplace/MarketplacePage'
 import { ProductDetailPage } from './pages/product/ProductDetailPage'
 import { MyListingsPage } from './pages/listings/MyListingsPage'
@@ -15,8 +15,18 @@ import { DashboardPage } from './pages/dashboard/DashboardPage'
 export const router = createBrowserRouter([
   // Landing and auth carry their own chrome.
   { path: '/', element: <LandingPage /> },
-  { path: '/login', element: <LoginPage /> },
-  { path: '/signup', element: <SignupPage /> },
+  // /login and /signup share ONE mounted AuthPage. Separate route elements would
+  // remount it on every switch, which resets the `ready` flag that gates the slide
+  // transition and throws away focus state mid-animation.
+  {
+    element: <AuthPage />,
+    children: [
+      { path: '/login', element: null },
+      { path: '/signup', element: null },
+    ],
+  },
+  // Public: the recovery link lands here before the visitor has chosen a password.
+  { path: '/reset-password', element: <ResetPasswordPage /> },
 
   // Everything else shares the app shell.
   {
